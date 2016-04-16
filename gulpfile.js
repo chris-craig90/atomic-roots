@@ -225,6 +225,7 @@ gulp.task('images', function() {
 // ### KSS Stylguide
 // Runs KSS and generates living stylguide
 // https://github.com/kss-node/kss-node/issues/161
+// kss-node 2.3.1 and later
 var styleGuideOptions = {
   source: [
     path.source + 'styles/'
@@ -240,9 +241,18 @@ var styleGuideOptions = {
   ],
   homepage: 'styleguideHomepage.md'
 };
-// kss-node 2.3.1 and later
-gulp.task('styleguide', function(cb) {
-  kss(styleGuideOptions, cb);
+// Clear Styleguide
+gulp.task('cleanStyleGuide', require('del').bind(null, ['styleguide']));
+// Build Styleguide
+gulp.task('styleguideBuild', function(callback) {
+  console.log('styleguide runnig');
+  kss(styleGuideOptions, callback);
+});
+
+gulp.task('styleguide', function(callback) {
+  runSequence('cleanStyleGuide',
+              'styleguideBuild',
+              callback);
 });
 
 // ### JSHint
@@ -268,7 +278,7 @@ gulp.task('clean', require('del').bind(null, [path.dist]));
 // See: http://www.browsersync.io
 gulp.task('watch', function() {
   browserSync.init({
-    files: ['{lib,templates}/**/*.php', '*.php'],
+    files: ['{lib,templates}/**/*.php', '*.php', 'styleGuide/*.html'],
     proxy: config.devUrl,
     snippetOptions: {
       whitelist: ['/wp-admin/admin-ajax.php'],
