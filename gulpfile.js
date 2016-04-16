@@ -19,6 +19,7 @@ var runSequence  = require('run-sequence');
 var sass         = require('gulp-sass');
 var sourcemaps   = require('gulp-sourcemaps');
 var uglify       = require('gulp-uglify');
+var kss          = require('kss');
 
 // See https://github.com/austinpray/asset-builder
 var manifest = require('asset-builder')('./assets/manifest.json');
@@ -221,6 +222,29 @@ gulp.task('images', function() {
     .pipe(browserSync.stream());
 });
 
+// ### KSS Stylguide
+// Runs KSS and generates living stylguide
+// https://github.com/kss-node/kss-node/issues/161
+var styleGuideOptions = {
+  source: [
+    path.source + 'styles/'
+  ],
+  destination: 'styleGuide/',
+  template: path.source + 'styles/KSStemplate',
+  // The css and js paths are URLs, like '/misc/jquery.js'.
+  // The following paths are relative to the generated style guide.
+  css: [
+    path.dist + 'styles/'
+  ],
+  js: [
+  ],
+  homepage: 'styleguideHomepage.md'
+};
+// kss-node 2.3.1 and later
+gulp.task('styleguide', function(cb) {
+  kss(styleGuideOptions, cb);
+});
+
 // ### JSHint
 // `gulp jshint` - Lints configuration JSON and project JS.
 gulp.task('jshint', function() {
@@ -251,7 +275,7 @@ gulp.task('watch', function() {
       blacklist: ['/wp-admin/**']
     }
   });
-  gulp.watch([path.source + 'styles/**/*'], ['styles']);
+  gulp.watch([path.source + 'styles/**/*'], ['styleguide', 'styles']);
   gulp.watch([path.source + 'scripts/**/*'], ['jshint', 'scripts']);
   gulp.watch([path.source + 'fonts/**/*'], ['fonts']);
   gulp.watch([path.source + 'images/**/*'], ['images']);
@@ -263,6 +287,7 @@ gulp.task('watch', function() {
 // Generally you should be running `gulp` instead of `gulp build`.
 gulp.task('build', function(callback) {
   runSequence('styles',
+              'styleguide',
               'scripts',
               ['fonts', 'images'],
               callback);
