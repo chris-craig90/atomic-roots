@@ -23,6 +23,7 @@
     }
   },
   "config": {
-    "devUrl": "http://atomic-theme-v2.dev/"
+    "devUrl": "http://atomic-theme-v2.dev/",
+    "styleGuideUrl": "http://atomic-theme-v2.dev/wp-content/themes/atomic-roots/"
   }
 }
