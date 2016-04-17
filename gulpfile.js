@@ -2,6 +2,7 @@
 var argv         = require('minimist')(process.argv.slice(2));
 var autoprefixer = require('gulp-autoprefixer');
 var browserSync  = require('browser-sync').create();
+var reload       = browserSync.reload;
 var changed      = require('gulp-changed');
 var concat       = require('gulp-concat');
 var flatten      = require('gulp-flatten');
@@ -20,6 +21,7 @@ var sass         = require('gulp-sass');
 var sourcemaps   = require('gulp-sourcemaps');
 var uglify       = require('gulp-uglify');
 var kss          = require('kss');
+var styleguide   = require('sc5-styleguide');
 
 // See https://github.com/austinpray/asset-builder
 var manifest = require('asset-builder')('./assets/manifest.json');
@@ -222,6 +224,82 @@ gulp.task('images', function() {
     .pipe(browserSync.stream());
 });
 
+// ### SC5 Stylguide
+// Building styleguide for static hosting to be displayed as a part of the application
+//
+// Here we build the styleguide so it can be included in a web folder within the app.
+// The benefit for including the styleguide at /styleguide path of the app is that
+// everyone can always find a master copy of the style guide. Another benefit is that
+// this copy will be load balanced by the web server, so it can handle heavy loads.
+// All interactive features are disabled to prevent users from tampering with the
+// styles.
+
+var sourcePath = './assets/';
+var htmlWild = sourcePath + '/**/*.html';
+var styleSourcePath = sourcePath + '/styles';
+var scssWild = styleSourcePath + '/**/*.scss';
+var scssRoot = styleSourcePath + '/**/*.scss';
+var overviewPath = styleSourcePath + '/README.md';
+
+var buildPath = 'build/';
+var styleBuildPath = buildPath + '/styles';
+var styleguideAppRoot = buildPath + '/styleguide';
+var styleguideBuildPath = styleguideAppRoot;
+
+var tmpPath = 'tmp/';
+var styleguideTmpPath = tmpPath + '/styleguide';
+
+gulp.task('staticStyleguide:generate', function() {
+  return gulp.src(scssWild)
+    .pipe(styleguide.generate({
+        title: 'My First Hosted Styleguide',
+        rootPath: styleguideBuildPath,
+        appRoot: styleguideAppRoot,
+        overviewPath: overviewPath
+      }))
+    .pipe(gulp.dest(styleguideBuildPath));
+});
+
+gulp.task('staticStyleguide:applystyles', function() {
+  return gulp.src(scssRoot)
+    .pipe(sass({
+      errLogToConsole: true
+    }))
+    .pipe(styleguide.applyStyles())
+    .pipe(gulp.dest(styleguideBuildPath));
+});
+
+gulp.task('staticStyleguide', ['staticStyleguide:generate', 'staticStyleguide:applystyles']);
+
+// Running styleguide development server to view the styles while you are working on them
+//
+// This task runs the interactive style guide for use by developers. It runs a built-in server
+// and contains all the interactive features and should be updated automatically whenever the
+// styles are modified.
+
+gulp.task('styleguide:generate', function() {
+  console.log('Running' + styleguideTmpPath);
+  return gulp.src(scssWild)
+    .pipe(styleguide.generate({
+        title: 'My First Development Styleguide',
+        server: false,
+        rootPath: styleguideTmpPath,
+        overviewPath: overviewPath
+      }))
+    .pipe(gulp.dest(styleguideTmpPath));
+});
+
+gulp.task('styleguide:applystyles', function() {
+  return gulp.src(scssRoot)
+    .pipe(sass({
+      errLogToConsole: true
+    }))
+    .pipe(styleguide.applyStyles())
+    .pipe(gulp.dest(styleguideTmpPath));
+});
+
+gulp.task('styleguide', ['styleguide:generate', 'styleguide:applystyles']);
+
 // ### KSS Stylguide
 // Runs KSS and generates living stylguide
 // https://github.com/kss-node/kss-node/issues/161
@@ -242,16 +320,16 @@ var styleGuideOptions = {
   homepage: 'styleguideHomepage.md'
 };
 // Clear Styleguide
-gulp.task('cleanStyleGuide', require('del').bind(null, ['styleguide']));
+gulp.task('cleanStyleGuideKSS', require('del').bind(null, ['styleguide']));
 // Build Styleguide
-gulp.task('styleguideBuild', function(callback) {
+gulp.task('styleguideBuildKSS', function(callback) {
   console.log('styleguide runnig');
   kss(styleGuideOptions, callback);
 });
 
-gulp.task('styleguide', function(callback) {
-  runSequence('cleanStyleGuide',
-              'styleguideBuild',
+gulp.task('styleguideKSS', function(callback) {
+  runSequence('cleanStyleGuideKSS',
+              'styleguideBuildKSS',
               callback);
 });
 
@@ -292,12 +370,25 @@ gulp.task('watch', function() {
   gulp.watch(['bower.json', 'assets/manifest.json'], ['build']);
 });
 
+// ### Serve Styleguide
+// `gulp watchSG` - Use BrowserSync to proxy your dev server and to watch chnages to dist folder, manually reloads on change
+gulp.task('serveSG', function() {
+  browserSync.init({
+    server: {
+      baseDir: './tmp/styleguide/'
+    },
+    port: 3010,
+  });
+  gulp.watch('./dist/**/*').on('change', reload);
+});
+
 // ### Build
 // `gulp build` - Run all the build tasks but don't clean up beforehand.
 // Generally you should be running `gulp` instead of `gulp build`.
 gulp.task('build', function(callback) {
   runSequence('styles',
               'styleguide',
+              'staticStyleguide',
               'scripts',
               ['fonts', 'images'],
               callback);
