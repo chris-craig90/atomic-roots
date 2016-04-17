@@ -411,12 +411,4 @@ gulp.task('wiredep', function() {
 // `gulp` - Run a complete build. To compile for production run `gulp --production`.
 gulp.task('default', ['clean'], function() {
   gulp.start('build');
-  console.log(
-        '\nBuild complete!\n\nFresh build available in directory: ' +
-        buildPath + '\n\nCheckout the build by commanding\n' +
-        '(cd ' + buildPath + '; python -m SimpleHTTPServer)\n' +
-        'and pointing yout browser at http://localhost:8000/\n' +
-        'or http://localhost:8000/styleguide/ for the styleguide\n\n' +
-        'Run gulp with "gulp dev" for developer mode and style guide!\n'
-    );
 });
