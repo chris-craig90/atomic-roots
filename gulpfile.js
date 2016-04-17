@@ -278,7 +278,6 @@ gulp.task('staticStyleguide', ['staticStyleguide:generate', 'staticStyleguide:ap
 // styles are modified.
 
 gulp.task('styleguide:generate', function() {
-  console.log('Running' + styleguideTmpPath);
   return gulp.src(scssWild)
     .pipe(styleguide.generate({
         title: 'My First Development Styleguide',
@@ -299,6 +298,31 @@ gulp.task('styleguide:applystyles', function() {
 });
 
 gulp.task('styleguide', ['styleguide:generate', 'styleguide:applystyles']);
+
+// Designer Taks
+// gulp styleguideDesigner
+
+gulp.task('styleguideDesigner:generate', function() {
+  return gulp.src(scssWild)
+    .pipe(styleguide.generate({
+        title: 'My First Development Styleguide',
+        server: true,
+        rootPath: styleguideTmpPath,
+        overviewPath: overviewPath
+      }))
+    .pipe(gulp.dest(styleguideTmpPath));
+});
+
+gulp.task('styleguide:applystyles', function() {
+  return gulp.src(scssRoot)
+    .pipe(sass({
+      errLogToConsole: true
+    }))
+    .pipe(styleguide.applyStyles())
+    .pipe(gulp.dest(styleguideTmpPath));
+});
+
+gulp.task('styleguideDesigner', ['styleguideDesigner:generate', 'styleguide:applystyles']);
 
 // ### KSS Stylguide
 // Runs KSS and generates living stylguide
@@ -371,7 +395,7 @@ gulp.task('watch', function() {
 });
 
 // ### Serve Styleguide
-// `gulp watchSG` - Use BrowserSync to proxy your dev server and to watch chnages to dist folder, manually reloads on change
+// `gulp serveSG` - Use BrowserSync to proxy your dev server and to watch chnages to dist folder, manually reloads on change
 gulp.task('serveSG', function() {
   browserSync.init({
     server: {

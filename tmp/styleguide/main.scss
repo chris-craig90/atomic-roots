@@ -1,9 +1,19 @@
-@import "common/_variables";
-@import "common/atoms";
-
 // Automatically injected Bower dependencies via wiredep (never manually edit this block)
 // bower:scss
 // endbower
+
+@import 'common/_reset';
+@import 'common/_global';
+@import 'common/_variables';
+@import 'common/_helpers';
+// @import "common/_wp-classes";
+
+@import 'atomic/quarks/quarks';
+@import 'atomic/atoms/atoms';
+@import 'atomic/molecules/molecules';
+@import 'atomic/organisms/organisms';
+@import 'atomic/templates/templates';
+@import 'atomic/pages/pages';
 
 // @import "common/global";
 // @import "components/buttons";

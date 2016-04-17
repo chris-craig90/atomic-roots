@@ -1,9 +1,17 @@
 // Glyphicons font path
 $icon-font-path:        "../fonts/";
 
-// Grid settings
-$main-sm-columns:       12;
-$sidebar-sm-columns:    4;
+// Variables
+//
+// This file contains variables that are used to normalize the values used in
+// atom style definitions.
 
-// Colors
-$brand-primary:         #27ae60;
+$eg-default-fonts: sans-serif;
+$eg-spacings: 10px;
+
+// Color palette
+
+$eg-color-black: #0433ff;
+$eg-color-orange: #fe9;
+$eg-color-cyan: #9dd;
+$eg-color-brown: #dca;
